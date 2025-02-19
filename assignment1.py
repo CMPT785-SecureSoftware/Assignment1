@@ -19,7 +19,6 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-# Removed WTF_CSRF_HEADERS configuration
 
 # ======================
 # Setup Logging

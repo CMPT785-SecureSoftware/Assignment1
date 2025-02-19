@@ -57,7 +57,7 @@ app_logger.addHandler(app_handler)
 # ======================
 
 # Username validation: 3-20 characters; allowed: letters, digits, underscore, hyphen, period
-USERNAME_REGEX = re.compile(r'^[a-zA-Z0-9_.-]{3,20}$')
+USERNAME_REGEX = re.compile(r'^[a-zA-Z0-9_.-]{6,20}$')
 
 # Password validation: at least 8 characters with at least one uppercase letter,
 # one lowercase letter, one digit, and one special character.
@@ -74,6 +74,8 @@ def validate_input(username, password):
     if not is_valid_password(password):
         return ("Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, "
                 "one digit, and one special character.")
+    if username.lower() in password.lower():
+        return "Password should not contain the username."
     return None
 
 # ======================
@@ -184,9 +186,11 @@ def change_password():
     if not username or not old_password or not new_password:
         return jsonify({'error': 'Username, old password, and new password are required.'}), 400
 
-    if not is_valid_password(new_password):
-        return jsonify({'error': ("New password must be at least 8 characters long and include one uppercase letter, "
-                                  "one lowercase letter, one digit, and one special character.")}), 400
+    # Validate the new password using the same validation rules as for registration.
+    # This check includes ensuring the password does not contain the username.
+    new_validation_error = validate_input(username, new_password)
+    if new_validation_error:
+        return jsonify({'error': new_validation_error}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()

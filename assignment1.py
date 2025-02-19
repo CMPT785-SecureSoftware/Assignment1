@@ -5,9 +5,9 @@ import os
 import re
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_wtf.csrf import CSRFProtect, generate_csrf
 from logging.handlers import TimedRotatingFileHandler
 import logging
+from flask_talisman import Talisman
 
 app = Flask(__name__)
 
@@ -19,10 +19,7 @@ app.permanent_session_lifetime = timedelta(minutes=30)
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken']
-
-# Initialize CSRF protection
-csrf = CSRFProtect(app)
+# Removed WTF_CSRF_HEADERS configuration
 
 # ======================
 # Setup Logging
@@ -38,6 +35,7 @@ audit_logger.setLevel(logging.INFO)
 audit_handler = TimedRotatingFileHandler(
     'audit-logs/audit-log.txt', when='midnight', interval=1, backupCount=30
 )
+
 # Files will be rotated with a suffix like "-2025-02-18.txt"
 audit_handler.suffix = "%Y-%m-%d.txt"
 audit_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
@@ -49,6 +47,8 @@ app_logger.setLevel(logging.INFO)
 app_handler = TimedRotatingFileHandler(
     'application-logs/application-log.txt', when='midnight', interval=1, backupCount=30
 )
+
+# Files will be rotated with a suffix like "-2025-02-18.txt"
 app_handler.suffix = "%Y-%m-%d.txt"
 app_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
 app_logger.addHandler(app_handler)
@@ -105,7 +105,7 @@ def init_db():
 init_db()
 
 # ======================
-# HTTP Security Headers & CSRF Cookie
+# HTTP Security Headers
 # ======================
 
 @app.after_request
@@ -117,8 +117,6 @@ def set_security_headers(response):
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Cache-Control'] = 'no-store'
-    # Set the CSRF token as a cookie on every response
-    response.set_cookie('csrf_token', generate_csrf())
     return response
 
 # ======================
@@ -128,11 +126,6 @@ def set_security_headers(response):
 @app.route('/')
 def hello_world():
     return 'Hello World'
-
-@app.route('/csrf-token', methods=['GET'])
-def get_csrf_token():
-    token = generate_csrf()
-    return jsonify({'csrf_token': token})
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -176,11 +169,8 @@ def login():
         session.permanent = True
         session['username'] = username
         session['role'] = user['role']
-        # Generate a CSRF token and store it in the session.
-        csrf_token = generate_csrf()
-        session['csrf_token'] = csrf_token
         audit_logger.info(f"User {username} logged in successfully.")
-        return jsonify({'message': 'Login successful', 'csrf_token': csrf_token}), 200
+        return jsonify({'message': 'Login successful'}), 200
     else:
         audit_logger.warning(f"Failed login attempt for username {username}.")
         return jsonify({'error': 'Invalid username or password'}), 401
@@ -245,5 +235,7 @@ def not_found_error(error):
     return jsonify({'error': 'Not found'}), 404
 
 if __name__ == '__main__':
+    # Running with Flask-Talisman for HTTPS in production.
+    Talisman(app, force_https=True)
     # Running with an ad-hoc SSL context for HTTPS in development.
     app.run(debug=True, ssl_context='adhoc')

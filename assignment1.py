@@ -126,7 +126,7 @@ def set_security_headers(response):
 
 @app.route('/')
 def hello_world():
-    return 'Hello World'
+    return 'Welcome to CMPT785 Assignment 1!'
 
 @app.route('/register', methods=['POST'])
 def register():

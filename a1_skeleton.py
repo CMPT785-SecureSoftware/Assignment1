@@ -3,14 +3,8 @@ from flask_talisman import Talisman
 
 app = Flask(__name__)
 
-# Use a secure random secret key
-app.secret_key = uuid.uuid4().hex
-app.permanent_session_lifetime = timedelta(minutes=30)
-
-# Secure session cookie settings
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+# Create configuration object with secret key and session settings
+app.config.from_object('config.Config')
 
 # ======================
 # Configuration

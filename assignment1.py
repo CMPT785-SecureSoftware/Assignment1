@@ -56,7 +56,7 @@ app_logger.addHandler(app_handler)
 # Validation Settings
 # ======================
 
-# Username validation: 3-20 characters; allowed: letters, digits, underscore, hyphen, period
+# Username validation: 6-20 characters; allowed: letters, digits, underscore, hyphen, period
 USERNAME_REGEX = re.compile(r'^[a-zA-Z0-9_.-]{6,20}$')
 
 # Password validation: at least 8 characters with at least one uppercase letter,
@@ -69,7 +69,7 @@ def validate_input(username, password):
     if not username or not password:
         return "Username and password are required."
     if not USERNAME_REGEX.match(username):
-        return ("Invalid username. Must be 3-20 characters and contain only letters, numbers, underscores, "
+        return ("Invalid username. Must be 6-20 characters and contain only letters, numbers, underscores, "
                 "hyphens, or dots.")
     if not is_valid_password(password):
         return ("Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, "

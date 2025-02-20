@@ -34,7 +34,6 @@ audit_logger.setLevel(logging.INFO)
 audit_handler = TimedRotatingFileHandler(
     'audit-logs/audit-log.txt', when='midnight', interval=1, backupCount=30
 )
-
 # Files will be rotated with a suffix like "-2025-02-18.txt"
 audit_handler.suffix = "%Y-%m-%d.txt"
 audit_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
@@ -46,7 +45,6 @@ app_logger.setLevel(logging.INFO)
 app_handler = TimedRotatingFileHandler(
     'application-logs/application-log.txt', when='midnight', interval=1, backupCount=30
 )
-
 # Files will be rotated with a suffix like "-2025-02-18.txt"
 app_handler.suffix = "%Y-%m-%d.txt"
 app_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
@@ -65,15 +63,22 @@ def is_valid_password(password):
     pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$'
     return re.fullmatch(pattern, password) is not None
 
-def validate_input(username, password):
+def validate_input(username, password, check_username=True):
+    """
+    Validate username and password.
+    If check_username is True, enforce username format rules.
+    Otherwise, only validate password complexity and that it does not contain the username.
+    """
     if not username or not password:
         return "Username and password are required."
-    if not USERNAME_REGEX.match(username):
-        return ("Invalid username. Must be 6-20 characters and contain only letters, numbers, underscores, "
-                "hyphens, or dots.")
+    if check_username:
+        if not USERNAME_REGEX.match(username):
+            return ("Invalid username. Must be 6-20 characters and contain only letters, numbers, underscores, "
+                    "hyphens, or dots.")
     if not is_valid_password(password):
         return ("Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, "
                 "one digit, and one special character.")
+    # Check that the password does not contain the username (case-insensitive)
     if username.lower() in password.lower():
         return "Password should not contain the username."
     return None
@@ -133,7 +138,8 @@ def register():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    validation_error = validate_input(username, password)
+    # For registration, check both username and password
+    validation_error = validate_input(username, password, check_username=True)
     if validation_error:
         return jsonify({'error': validation_error}), 400
 
@@ -186,9 +192,8 @@ def change_password():
     if not username or not old_password or not new_password:
         return jsonify({'error': 'Username, old password, and new password are required.'}), 400
 
-    # Validate the new password using the same validation rules as for registration.
-    # This check includes ensuring the password does not contain the username.
-    new_validation_error = validate_input(username, new_password)
+    # For password change, skip username format validation and only check new password complexity and that it doesn't contain username
+    new_validation_error = validate_input(username, new_password, check_username=False)
     if new_validation_error:
         return jsonify({'error': new_validation_error}), 400
 

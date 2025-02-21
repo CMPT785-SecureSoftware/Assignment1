@@ -3,7 +3,8 @@ import uuid
 from datetime import timedelta
 
 class Config:
-    # Secure random secret key
     SECRET_KEY = uuid.uuid4().hex
-    # Session timeout
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'

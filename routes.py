@@ -144,7 +144,7 @@ def user():
     User-only endpoint. Requires any logged-in user. Returns a message indicating
     the currently logged-in user if authorized.
     """
-    if 'username' not in session:
+    if 'username' not in session or session.get('role') != 'user':
         audit_logger.warning("Unauthorized access attempt to /user.")
         return jsonify({'error': 'Unauthorized'}), 403
     return jsonify({'message': f'Logged in as user {session["username"]}'}), 200

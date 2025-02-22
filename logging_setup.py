@@ -3,6 +3,10 @@ import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
+# ======================
+# Setup Logging
+# ======================
+
 # Ensuring directories for storing log files exist, create if not exist
 os.makedirs('audit-logs', exist_ok=True)
 os.makedirs('application-logs', exist_ok=True)

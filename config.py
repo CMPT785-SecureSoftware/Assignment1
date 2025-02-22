@@ -2,6 +2,11 @@
 import uuid
 from datetime import timedelta
 
+
+# ======================
+# Configuration
+# ======================
+
 class Config:
     # we're using a unique, unpredictable SECRET_KEY
     SECRET_KEY = uuid.uuid4().hex

@@ -33,7 +33,7 @@ def setup_audit_logger():
     
     # Attach handler to the logger to enable logging
     audit_logger.addHandler(audit_handler)
-    # Return the configured audit logger for use in the application
+
     return audit_logger
 
 # Function to set up the application logger (for program-related events e.g. errors, HTTP errors,etc.)
@@ -57,5 +57,5 @@ def setup_app_logger():
     
     # Attach handler to the logger to enable logging
     app_logger.addHandler(app_handler)
-    # Return the configured application logger for use in the application
+    
     return app_logger

@@ -1,16 +1,16 @@
 # database.py
 import sqlite3
-import hashlib #for password hashing
+from werkzeug.security import generate_password_hash #for password hashing
+from logging_setup import setup_audit_logger
+
+# Set up the audit logger
+audit_logger = setup_audit_logger()
 
 #Establish connection to SQLite database
 def get_db_connection():
     conn = sqlite3.connect('database.db') #connect or create a database file
     conn.row_factory = sqlite3.Row #Dictionary-like access to rows
     return conn
-
-def hash_password(password):
-    # Hash password using SHA256
-    return hashlib.sha256(password.encode()).hexdigest()
 
 # Initialize Database
 def init_db():
@@ -23,11 +23,12 @@ def init_db():
                         password TEXT NOT NULL,
                         role TEXT NOT NULL)''')
     conn.commit()
-    # Create default admin user if not exists
+    # Create an admin user if one does not exist
     cursor.execute("SELECT * FROM users WHERE username=?", ('admin',))
     # If no admin user found, create one with the password 'admin' (hashed) and role 'admin'
     if not cursor.fetchone():
         cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
-                       ('admin', hash_password('admin'), 'admin'))
+                       ('admin', generate_password_hash('admin'), 'admin'))
         conn.commit()
+        audit_logger.info("Admin user created.")
     conn.close()
